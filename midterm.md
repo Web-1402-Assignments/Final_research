@@ -1255,6 +1255,146 @@ export default {
 </template>
 ```
 توجه کنید که بعد از اینکه کامپوننت mount شد می توانیم از محتویات ref استفاده کنیم.برای همین آنرا داخل آپشن mounted می‌آوریم.
+<hr>
+<h2>آشنایی بیشتر با کامپوننت‌ها</h2>
+کامپوننت‌ها به ما این اجازه را می‌دهند که UI را بخش های کوچک تر و مختلفی تقسیم کنیم و راجع به هربخش جداگانه تصمیم بگیریم و آن را هندل کنیم.همانطور که تگ های html به بخش های مختلفی مثل head , body و ... تقسیم می‌شوند. برای یک وب اپلیکیشن نیز بسیار مرسوم است که آن را به شکل component-based به بخش‌های مختلفی تقسیم(که بعضی از آنها تودرتو هستند)کنیم و برای هربخش جداگانه کدمورد نظر خود را پیاده کنیم.برای ایجاد یک کامپوننت اگر از روش build کردن استفاده می‌کنیم باید آن را در یک فایل با پسوند .vue تعریف کنیم که به آن Single-File Component نیز می‌گویند (یا SFC):
+
+```js
+<script>
+export default {
+  data() {
+    return {
+      count: 0
+    }
+  }
+}
+</script>
+
+<template>
+  <button @click="count++">You clicked me {{ count }} times.</button>
+</template>
+```
+اگر پروژه‌تان را بیلد نمی‌کنید می‌توانید کامپوننت را به عنوان یک آبجکت بنویسید
+```js
+export default {
+  data() {
+    return {
+      count: 0
+    }
+  },
+  template: `
+    <button @click="count++">
+      You clicked me {{ count }} times.
+    </button>`
+}
+```
+برای استفاده از یک کامپوننت به عنوان فرزند یک کامپوننت دیگر باید آن را ایمپورت کنید.بعنوان مثال اگر کامپوننت فرزندی که می‌خواهید از آن استفاده کنید در 
+<code>ButtonCounter.vue</code>
+باشد. می‌توانید اینطوری آن را ایمپورت کنید.البته باید آن را در داخل آپشن components خود نیز رجیستر کنید.
+
+```js
+<script>
+import ButtonCounter from './ButtonCounter.vue'
+
+export default {
+  components: {
+    ButtonCounter
+  }
+}
+</script>
+
+<template>
+  <h1>Here is a child component!</h1>
+  <ButtonCounter />
+</template>
+```
+حال که کامپوننت خود را ایمپورت کرده اید می‌توانید از آن در template خود هرچند بار که می‌خواهید استفاده کنید.
+
+```html
+<h1>Here are many child components!</h1>
+<ButtonCounter />
+<ButtonCounter />
+<ButtonCounter />
+```
+در سینتکس SFC که مشاهده کردیم پیشنهاد می‌شود از PascalCase استفاده کنید.اما چون به نوعی دارید درون کد template از آنها استفاده می کنید می‌توانید از kebab-case که مدل تایپ پایه در تگ های html هست نیز استفاده کنید.
+اگر مستقیما در خود DOM دارید از کامپوننت ها استفاده می‌کنید (برای اینکار باید آنهار را داخل تگ template بکذارید)
+آنگاه اجبارا باید از kebab-case استفاده کنید :
+
+```html
+<!-- if this template is written in the DOM -->
+<button-counter></button-counter>
+<button-counter></button-counter>
+<button-counter></button-counter>
+```
+خیلی اوقات ما نیاز داریم از یک کامپوننت درجاهای مختلفی استفاده کنیم اما دوست داریم محتوای متفاوتی داشته باشد.می‌توانیم به جای اینکه برای هربخش یک کامپوننت جدا بسازیم برای کامپوننت خود در بخش آپشن props به آن بفهمانیم که قرار است یک دیتایی با یک تگ مشخصی به آن پاس داده شود.به عنوان مثال کد زیر را درنظر بگیرید :
+
+```js
+<!-- BlogPost.vue -->
+<script>
+export default {
+  props: ['title']
+}
+</script>
+
+<template>
+  <h4>{{ title }}</h4>
+</template>
+```
+حال می‌توانیم هنگام استفاده از تگ کامپوننت فرزند درهرجای دلخواهی که می‌خواهیم به شکل زیر به آن title مورد نظرش را پاس بدهیم :
+
+```html
+<BlogPost title="My journey with Vue" />
+<BlogPost title="Blogging with Vue" />
+<BlogPost title="Why Vue is so fun" />
+```
+<br>
+همانطور که پیشتر نیز دیدیم می‌توانیم برای کامپوننت ها لیسنر و EventHandler بگذاریم که باعث می‌شود بخشی از خود یا پرنت خود را تغییر دهند که در اینجا وارد این مبحث نمی‌شویم.
+<br>
+همچنین می‌توان یک محتوایی را بین تگ‌های کامپوننت مورد نظر وارد کرد. بگذارید دقیق تر توضیح دهیم.مثلا برای تگ‌های عادی html داریم :
+
+```html
+<p>hi</p>
+```
+هرچیزی که بین تگ باز و بسته پاراگراف بنویسید درون آن نمایش داده خواهد شد. برای اینکه بخواهیم کامپوننت دلخواه ما نیز چنین رفتاری داشته باشد از <code>
+slot
+</code>
+استفاده می‌کنیم.
+
+```js
+<template>
+  <div class="alert-box">
+    <strong>This is an Error for Demo Purposes</strong>
+    <slot />
+  </div>
+</template>
+
+<style scoped>
+.alert-box {
+  /* ... */
+}
+</style>
+```
+در اینجا slot مشخص می‌کند محتوایی که ما بین دو تگ باز و بسته برای این کامپوننت می‌نویسیم دقیقا کجا برود و قرار بگیرد :
+
+```html
+<AlertBox>
+  Something bad happened.
+</AlertBox>
+```
+در اینجا "Something bad happened"
+می‌رود و زیر تیتر This is an Error for Demo Purposes و درون div قرار می‌گیرد.
+<br>
+می‌توان با استفاده از اتریبیتو <code>is</code>
+در ویو محتوای یک کامپوننت را داینامیک کرد ودر واقع برای یک کامپوننت پدر کامپوننت فرزند آن را بسته به شرایط تغییر داد :
+
+```html
+<!-- Component changes when currentTab changes -->
+<component :is="currentTab"></component>
+```
+در اینجا با تغییر پراپرتی currentTab کامپوننت مورد نظر نیز تغییر خواهد کرد.
+
+
+
 <hr><hr>
 <h2>منابع</h2>
 
